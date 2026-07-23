@@ -712,7 +712,12 @@
       min-height: var(--cp-chat-header-height) !important;
       height: var(--cp-chat-header-height) !important;
       max-height: var(--cp-chat-header-height) !important;
-      background: var(--cp-green) !important;
+      /*
+       * Родная шапка BPMSoft нужна только как место под кастомную шапку.
+       * Делаем её прозрачной, чтобы при overflow: visible не появлялся
+       * отдельный зелёный прямоугольник над чатом.
+       */
+      background: transparent !important;
       border-radius: 18px 18px 0 0 !important;
       overflow: hidden !important;
     }
@@ -1131,6 +1136,15 @@
       border-right-color: #dff4e6 !important;
       border-top-color: #dff4e6 !important;
       border-bottom-color: #dff4e6 !important;
+    }
+
+  
+    #bpmsoftoccchat-container
+    .bpmsoftoccchat-conversation-body-profile::before,
+    #bpmsoftoccchat-container
+    .bpmsoftoccchat-conversation-body-profile::after {
+      background: transparent !important;
+      box-shadow: none !important;
     }
 
   </style>
