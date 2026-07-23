@@ -1128,6 +1128,26 @@
       touch-action: manipulation;
     }
 
+  
+    /* Исходящие сообщения, определённые по фактическому положению справа. */
+    #bpmsoftoccchat-container .carprice-client-message,
+    #bpmsoftoccchat-container .carprice-client-message .bpmsoftoccchat-comment,
+    #bpmsoftoccchat-container .carprice-client-message [class*="comment"] {
+      background-color: #dff4e6 !important;
+      background: #dff4e6 !important;
+      color: #214a31 !important;
+    }
+
+    #bpmsoftoccchat-container .carprice-client-message::before,
+    #bpmsoftoccchat-container .carprice-client-message::after,
+    #bpmsoftoccchat-container .carprice-client-message .bpmsoftoccchat-comment::before,
+    #bpmsoftoccchat-container .carprice-client-message .bpmsoftoccchat-comment::after {
+      border-left-color: #dff4e6 !important;
+      border-right-color: #dff4e6 !important;
+      border-top-color: #dff4e6 !important;
+      border-bottom-color: #dff4e6 !important;
+    }
+
   </style>
 </head>
 <body>
@@ -1178,9 +1198,17 @@
       widgetButtonColorLine: '#ffffff',
       chatMessagePlaceholder: 'Введите сообщение...',
       closeChatCaption: 'Свернуть',
-      enableFileUpload: true,
       showChannelPanel: false,
-      channelsInPanel: null
+      channelsInPanel: null,
+
+      srcUrl: 'https://bpmsoft-oc-widget1.cloudbpm.ru/src',
+      fileServerUrl: 'https://bpmsoft-oc-fileservice1.cloudbpm.ru',
+      enableFileUpload: true,
+      isEmojiVisible: true,
+      disableInputOnButtonMessages: false,
+      chatButtonsPlaceholder: 'Выберите один из предложенных вариантов',
+      attachFileButton: 'https://bpmsoft-oc-widget1.cloudbpm.ru/src/n-upload-button.svg',
+      emojiIcon: 'https://bpmsoft-oc-widget1.cloudbpm.ru/src/n-smile.svg'
     };
   </script>
 
@@ -1216,6 +1244,66 @@
           rect.height > 220;
       };
 
+      const markClientMessages = () => {
+        const root = getRoot();
+        const messenger = getMessenger();
+        if (!root || !messenger) return;
+
+        const messengerRect = messenger.getBoundingClientRect();
+        const candidates = root.querySelectorAll(
+          '.bpmsoftoccchat-comment-container-client, ' +
+          '.bpmsoftoccchat-comment-container-admin, ' +
+          '[class*="comment-container"]'
+        );
+
+        candidates.forEach((candidate) => {
+          const rect = candidate.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+
+          /*
+           * Исходящие сообщения в штатном виджете стоят справа.
+           * Не полагаемся на имя внутреннего класса BPMSoft:
+           * оно уже менялось между версиями.
+           */
+          const isRightAligned =
+            rect.right >= messengerRect.right - 36 &&
+            rect.left > messengerRect.left + messengerRect.width * 0.28;
+
+          candidate.classList.toggle(
+            'carprice-client-message',
+            isRightAligned
+          );
+
+          if (!isRightAligned) return;
+
+          candidate.querySelectorAll('*').forEach((element) => {
+            const background = window.getComputedStyle(element).backgroundColor;
+            const numbers = background.match(/\d+(?:\.\d+)?/g);
+            if (!numbers || numbers.length < 3) return;
+
+            const [red, green, blue] = numbers.map(Number);
+            const looksOrange =
+              red > 190 &&
+              green >= 70 &&
+              green < 190 &&
+              blue < 170;
+
+            if (looksOrange) {
+              element.style.setProperty(
+                'background-color',
+                '#dff4e6',
+                'important'
+              );
+              element.style.setProperty(
+                'background',
+                '#dff4e6',
+                'important'
+              );
+            }
+          });
+        });
+      };
+
       const positionHeader = () => {
         const messenger = getMessenger();
         const open = isVisible(messenger);
@@ -1230,6 +1318,8 @@
         visualHeader.style.left = `${Math.round(rect.left)}px`;
         visualHeader.style.top = `${Math.round(rect.top)}px`;
         visualHeader.style.width = `${Math.round(rect.width)}px`;
+
+        markClientMessages();
       };
 
       const reopenLocallyClosedChat = () => {
