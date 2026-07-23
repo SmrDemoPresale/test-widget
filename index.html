@@ -701,7 +701,7 @@
       bottom: 12px !important;
       border: 0 !important;
       border-radius: 18px !important;
-      overflow: hidden !important;
+      overflow: visible !important;
       background: var(--cp-white) !important;
       box-shadow: 0 10px 34px rgba(18, 31, 24, .25) !important;
     }
@@ -1087,6 +1087,52 @@
       z-index: 2147483000;
     }
 
+  
+    /* Сворачивание без закрытия соединения и без перезапуска чат-бота. */
+    #bpmsoftoccchat-container.carprice-chat-is-collapsed
+    .bpmsoftoccchat-messenger {
+      display: none !important;
+    }
+
+    /*
+     * Панель эмодзи может выходить за границы окна, но теперь не обрезается.
+     * z-index применяется только к элементам, чьи классы прямо связаны
+     * с emoji/smile/picker.
+     */
+    #bpmsoftoccchat-container [class*="emoji" i],
+    #bpmsoftoccchat-container [class*="smile" i],
+    #bpmsoftoccchat-container [class*="picker" i] {
+      z-index: 2147483647 !important;
+    }
+
+    /*
+     * Исходящие сообщения клиента.
+     * Селектор основан на штатном контейнере BPMSoft "client".
+     */
+    #bpmsoftoccchat-container
+    .bpmsoftoccchat-comment-container-client
+    .bpmsoftoccchat-comment {
+      background: #dff4e6 !important;
+      background-color: #dff4e6 !important;
+      color: #214a31 !important;
+    }
+
+    #bpmsoftoccchat-container
+    .bpmsoftoccchat-comment-container-client::before,
+    #bpmsoftoccchat-container
+    .bpmsoftoccchat-comment-container-client::after,
+    #bpmsoftoccchat-container
+    .bpmsoftoccchat-comment-container-client
+    .bpmsoftoccchat-comment::before,
+    #bpmsoftoccchat-container
+    .bpmsoftoccchat-comment-container-client
+    .bpmsoftoccchat-comment::after {
+      border-left-color: #dff4e6 !important;
+      border-right-color: #dff4e6 !important;
+      border-top-color: #dff4e6 !important;
+      border-bottom-color: #dff4e6 !important;
+    }
+
   </style>
 </head>
 <body>
@@ -1246,6 +1292,18 @@
       };
 
       const openChat = () => {
+        const root = getRoot();
+
+        /*
+         * После локального сворачивания просто возвращаем тот же DOM чата.
+         * Сессия, история, быстрые ответы, вложения и эмодзи не создаются заново.
+         */
+        if (root?.classList.contains('carprice-chat-is-collapsed')) {
+          root.classList.remove('carprice-chat-is-collapsed');
+          window.requestAnimationFrame(positionOverlays);
+          return;
+        }
+
         const clickWhenReady = () => {
           const startButton = getStartButton();
           if (!startButton) return false;
@@ -1268,13 +1326,19 @@
       };
 
       const closeChat = () => {
-        const nativeClose = findNativeClose();
-        if (nativeClose) {
-          nativeClose.click();
-        } else {
-          getStartButton()?.click();
-        }
-        window.setTimeout(positionOverlays, 120);
+        const root = getRoot();
+        const messenger = getMessenger();
+
+        if (!root || !messenger) return;
+
+        /*
+         * Не нажимаем неизвестные внутренние элементы BPMSoft.
+         * Только скрываем уже работающий messenger и показываем зелёную кнопку.
+         */
+        root.classList.add('carprice-chat-is-collapsed');
+        visualHeader.classList.remove('is-visible');
+        emptyState.classList.remove('is-visible');
+        launcher.classList.remove('is-hidden');
       };
 
       launcher.addEventListener('click', openChat);
