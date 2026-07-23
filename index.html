@@ -1087,6 +1087,47 @@
       z-index: 2147483000;
     }
 
+  
+    /* ===== ТОЧЕЧНЫЕ ИСПРАВЛЕНИЯ РАБОЧЕГО ВИДЖЕТА ===== */
+
+    /* Светло-зелёные сообщения клиента вместо оранжевых. */
+    #bpmsoftoccchat-container .bpmsoftoccchat-comment-container-client,
+    #bpmsoftoccchat-container .bpmsoftoccchat-comment-container-client .bpmsoftoccchat-comment,
+    #bpmsoftoccchat-container .bpmsoftoccchat-comment-container-client [class*="comment"] {
+      background-color: #dff4e6 !important;
+      color: #214a31 !important;
+    }
+
+    /* Цвет хвостика сообщения, если он нарисован псевдоэлементом. */
+    #bpmsoftoccchat-container .bpmsoftoccchat-comment-container-client::before,
+    #bpmsoftoccchat-container .bpmsoftoccchat-comment-container-client::after,
+    #bpmsoftoccchat-container .bpmsoftoccchat-comment-container-client .bpmsoftoccchat-comment::before,
+    #bpmsoftoccchat-container .bpmsoftoccchat-comment-container-client .bpmsoftoccchat-comment::after {
+      border-left-color: #dff4e6 !important;
+      border-right-color: #dff4e6 !important;
+    }
+
+    #bpmsoftoccchat-container .bpmsoftoccchat-comment-container-client [class*="time"] {
+      color: #63756a !important;
+    }
+
+    /* Кастомная кнопка закрытия всегда поверх штатной прозрачной шапки. */
+    .carprice-chat-header {
+      z-index: 2147483647 !important;
+    }
+
+    .carprice-chat-header__close {
+      z-index: 2147483647 !important;
+      pointer-events: auto !important;
+      touch-action: manipulation;
+    }
+
+    /* JS добавляет этот класс только видимой панели со смайликами. */
+    #bpmsoftoccchat-container .carprice-emoji-popup-fixed {
+      z-index: 2147483647 !important;
+      will-change: translate;
+    }
+
   </style>
 </head>
 <body>
@@ -1201,6 +1242,58 @@
         ));
       };
 
+      const fixEmojiPopupPosition = () => {
+        const root = getRoot();
+        const messenger = getMessenger();
+        if (!root || !isVisible(messenger)) return;
+
+        const messengerRect = messenger.getBoundingClientRect();
+        const candidates = root.querySelectorAll(
+          '[class*="emoji" i], ' +
+          '[class*="smile" i], ' +
+          '[class*="emoticon" i], ' +
+          '[class*="picker" i]'
+        );
+
+        candidates.forEach((candidate) => {
+          const rect = candidate.getBoundingClientRect();
+          const style = window.getComputedStyle(candidate);
+
+          /*
+           * Кнопку-смайлик не трогаем. Нужна именно большая открытая панель.
+           */
+          if (
+            style.display === 'none' ||
+            style.visibility === 'hidden' ||
+            rect.width < 140 ||
+            rect.height < 100
+          ) {
+            candidate.classList.remove('carprice-emoji-popup-fixed');
+            candidate.style.removeProperty('translate');
+            return;
+          }
+
+          const safeLeft = messengerRect.left + 10;
+          const safeRight = messengerRect.right - 10;
+          let shiftX = 0;
+
+          if (rect.left < safeLeft) {
+            shiftX += safeLeft - rect.left;
+          }
+
+          if (rect.right + shiftX > safeRight) {
+            shiftX += safeRight - (rect.right + shiftX);
+          }
+
+          candidate.classList.add('carprice-emoji-popup-fixed');
+          candidate.style.setProperty(
+            'translate',
+            `${Math.round(shiftX)}px 0`,
+            'important'
+          );
+        });
+      };
+
       const positionOverlays = () => {
         const messenger = getMessenger();
         const open = isVisible(messenger);
@@ -1226,6 +1319,8 @@
         emptyState.style.width = `${Math.round(rect.width - (EMPTY_MARGIN * 2))}px`;
         emptyState.style.height = `${Math.round(emptyHeight)}px`;
         emptyState.classList.toggle('is-visible', !hasMessages(getRoot()));
+
+        fixEmojiPopupPosition();
       };
 
       const findNativeClose = () => {
@@ -1268,13 +1363,29 @@
       };
 
       const closeChat = () => {
-        const nativeClose = findNativeClose();
-        if (nativeClose) {
-          nativeClose.click();
+        /*
+         * Открытие уже работает через штатную кнопку BPMSoft.
+         * Она же является самым надёжным переключателем для сворачивания.
+         */
+        const startButton = getStartButton();
+
+        if (startButton) {
+          startButton.click();
         } else {
-          getStartButton()?.click();
+          findNativeClose()?.click();
         }
-        window.setTimeout(positionOverlays, 120);
+
+        /*
+         * На случай сборки, где startbutton только открывает чат:
+         * через небольшую паузу пробуем штатную кнопку закрытия,
+         * но только если окно действительно осталось открытым.
+         */
+        window.setTimeout(() => {
+          if (isVisible(getMessenger())) {
+            findNativeClose()?.click();
+          }
+          positionOverlays();
+        }, 500);
       };
 
       launcher.addEventListener('click', openChat);
