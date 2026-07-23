@@ -1081,71 +1081,10 @@
 
     .carprice-chat-launcher,
     .carprice-chat-header,
+    .carprice-chat-empty,
     #bpmsoftocc-chat,
     #bpmsoftoccchat-container {
       z-index: 2147483000;
-    }
-
-  
-    /* Локальное сворачивание рабочего окна без разрушения сессии BPMSoft. */
-    #bpmsoftoccchat-container.carprice-chat-manually-hidden
-    .bpmsoftoccchat-messenger {
-      display: none !important;
-    }
-
-    /* Светло-зелёные исходящие сообщения вместо оранжевых. */
-    #bpmsoftoccchat-container
-    .bpmsoftoccchat-comment-container-client,
-    #bpmsoftoccchat-container
-    .bpmsoftoccchat-comment-container-client
-    .bpmsoftoccchat-comment {
-      background-color: #dff4e6 !important;
-      color: #214a31 !important;
-    }
-
-    #bpmsoftoccchat-container
-    .bpmsoftoccchat-comment-container-client::before,
-    #bpmsoftoccchat-container
-    .bpmsoftoccchat-comment-container-client::after,
-    #bpmsoftoccchat-container
-    .bpmsoftoccchat-comment-container-client
-    .bpmsoftoccchat-comment::before,
-    #bpmsoftoccchat-container
-    .bpmsoftoccchat-comment-container-client
-    .bpmsoftoccchat-comment::after {
-      border-left-color: #dff4e6 !important;
-      border-right-color: #dff4e6 !important;
-    }
-
-    /* Кнопка сворачивания остаётся кликабельной поверх шапки. */
-    .carprice-chat-header {
-      z-index: 2147483646 !important;
-    }
-
-    .carprice-chat-header__close {
-      z-index: 2147483647 !important;
-      pointer-events: auto !important;
-      touch-action: manipulation;
-    }
-
-  
-    /* Исходящие сообщения, определённые по фактическому положению справа. */
-    #bpmsoftoccchat-container .carprice-client-message,
-    #bpmsoftoccchat-container .carprice-client-message .bpmsoftoccchat-comment,
-    #bpmsoftoccchat-container .carprice-client-message [class*="comment"] {
-      background-color: #dff4e6 !important;
-      background: #dff4e6 !important;
-      color: #214a31 !important;
-    }
-
-    #bpmsoftoccchat-container .carprice-client-message::before,
-    #bpmsoftoccchat-container .carprice-client-message::after,
-    #bpmsoftoccchat-container .carprice-client-message .bpmsoftoccchat-comment::before,
-    #bpmsoftoccchat-container .carprice-client-message .bpmsoftoccchat-comment::after {
-      border-left-color: #dff4e6 !important;
-      border-right-color: #dff4e6 !important;
-      border-top-color: #dff4e6 !important;
-      border-bottom-color: #dff4e6 !important;
     }
 
   </style>
@@ -1185,6 +1124,22 @@
     </button>
   </div>
 
+  <!-- Пустое состояние истории, расположенное отдельно и не влияющее на сетку чата. -->
+  <div class="carprice-chat-empty" id="carprice-chat-empty" aria-hidden="true">
+    <div class="carprice-chat-empty__content">
+      <svg class="carprice-chat-empty__icon" viewBox="0 0 68 68" fill="none" aria-hidden="true">
+        <path d="M13 11h31a4 4 0 0 1 4 4v22a4 4 0 0 1-4 4H28l-10 7v-7h-5a4 4 0 0 1-4-4V15a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="2.7" stroke-linejoin="round"/>
+        <path d="M18 20h21M18 27h16M18 34h11" stroke="currentColor" stroke-width="2.7" stroke-linecap="round"/>
+        <path d="M32 32h21a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4h-4v7l-9-7h-8a4 4 0 0 1-4-4V36a4 4 0 0 1 4-4Z" fill="#f1f2f1" stroke="currentColor" stroke-width="2.7" stroke-linejoin="round"/>
+        <circle cx="38" cy="43" r="1.55" fill="currentColor"/>
+        <circle cx="47" cy="43" r="1.55" fill="currentColor"/>
+        <path d="M38 49c3 3 6 3 9 0" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+      <p class="carprice-chat-empty__title">Мы с вами ещё не общались</p>
+      <p class="carprice-chat-empty__text">Здесь будет история ваших диалогов</p>
+    </div>
+  </div>
+
   <div id="bpmsoftocc-chat"></div>
 
   <script>
@@ -1197,18 +1152,11 @@
       widgetButtonColor: '#009f3f',
       widgetButtonColorLine: '#ffffff',
       chatMessagePlaceholder: 'Введите сообщение...',
+      noMessagesHistoryCaption: 'Мы с вами ещё не общались',
       closeChatCaption: 'Свернуть',
-      showChannelPanel: false,
-      channelsInPanel: null,
-
-      srcUrl: 'https://bpmsoft-oc-widget1.cloudbpm.ru/src',
-      fileServerUrl: 'https://bpmsoft-oc-fileservice1.cloudbpm.ru',
       enableFileUpload: true,
-      isEmojiVisible: true,
-      disableInputOnButtonMessages: false,
-      chatButtonsPlaceholder: 'Выберите один из предложенных вариантов',
-      attachFileButton: 'https://bpmsoft-oc-widget1.cloudbpm.ru/src/n-upload-button.svg',
-      emojiIcon: 'https://bpmsoft-oc-widget1.cloudbpm.ru/src/n-smile.svg'
+      showChannelPanel: false,
+      channelsInPanel: null
     };
   </script>
 
@@ -1216,27 +1164,25 @@
   <script src="https://bpmsoft-oc-widget1.cloudbpm.ru/3.2/chunk-vendors.js" async></script>
 
   <script>
+
     (() => {
       const launcher = document.getElementById('carprice-chat-launcher');
       const visualHeader = document.getElementById('carprice-chat-header');
+      const emptyState = document.getElementById('carprice-chat-empty');
       const closeButton = document.getElementById('carprice-chat-close');
+      const HEADER_HEIGHT = 136;
+      const EMPTY_MARGIN = 16;
+      const COMPOSER_RESERVE = 82;
       let openRequestTimer = null;
 
-      const getStartButton = () =>
-        document.getElementById('bpmsoftoccchat-widget-startbutton');
-
-      const getRoot = () =>
-        document.getElementById('bpmsoftoccchat-container');
-
-      const getMessenger = () =>
-        getRoot()?.querySelector('.bpmsoftoccchat-messenger') || null;
+      const getStartButton = () => document.getElementById('bpmsoftoccchat-widget-startbutton');
+      const getRoot = () => document.getElementById('bpmsoftoccchat-container');
+      const getMessenger = () => getRoot()?.querySelector('.bpmsoftoccchat-messenger') || null;
 
       const isVisible = (element) => {
         if (!element) return false;
-
         const style = window.getComputedStyle(element);
         const rect = element.getBoundingClientRect();
-
         return style.display !== 'none' &&
           style.visibility !== 'hidden' &&
           Number(style.opacity || 1) > 0 &&
@@ -1244,109 +1190,67 @@
           rect.height > 220;
       };
 
-      const markClientMessages = () => {
-        const root = getRoot();
-        const messenger = getMessenger();
-        if (!root || !messenger) return;
-
-        const messengerRect = messenger.getBoundingClientRect();
-        const candidates = root.querySelectorAll(
-          '.bpmsoftoccchat-comment-container-client, ' +
+      const hasMessages = (root) => {
+        if (!root) return false;
+        return Boolean(root.querySelector(
+          '.bpmsoftoccchat-comment, ' +
           '.bpmsoftoccchat-comment-container-admin, ' +
-          '[class*="comment-container"]'
-        );
-
-        candidates.forEach((candidate) => {
-          const rect = candidate.getBoundingClientRect();
-          if (!rect.width || !rect.height) return;
-
-          /*
-           * Исходящие сообщения в штатном виджете стоят справа.
-           * Не полагаемся на имя внутреннего класса BPMSoft:
-           * оно уже менялось между версиями.
-           */
-          const isRightAligned =
-            rect.right >= messengerRect.right - 36 &&
-            rect.left > messengerRect.left + messengerRect.width * 0.28;
-
-          candidate.classList.toggle(
-            'carprice-client-message',
-            isRightAligned
-          );
-
-          if (!isRightAligned) return;
-
-          candidate.querySelectorAll('*').forEach((element) => {
-            const background = window.getComputedStyle(element).backgroundColor;
-            const numbers = background.match(/\d+(?:\.\d+)?/g);
-            if (!numbers || numbers.length < 3) return;
-
-            const [red, green, blue] = numbers.map(Number);
-            const looksOrange =
-              red > 190 &&
-              green >= 70 &&
-              green < 190 &&
-              blue < 170;
-
-            if (looksOrange) {
-              element.style.setProperty(
-                'background-color',
-                '#dff4e6',
-                'important'
-              );
-              element.style.setProperty(
-                'background',
-                '#dff4e6',
-                'important'
-              );
-            }
-          });
-        });
+          '.bpmsoftoccchat-comment-container-client, ' +
+          '[class*="message-item"], ' +
+          '[data-testid*="message"]'
+        ));
       };
 
-      const positionHeader = () => {
+      const positionOverlays = () => {
         const messenger = getMessenger();
         const open = isVisible(messenger);
 
         launcher.classList.toggle('is-hidden', open);
         visualHeader.classList.toggle('is-visible', open);
 
-        if (!open) return;
+        if (!open) {
+          emptyState.classList.remove('is-visible');
+          return;
+        }
 
         const rect = messenger.getBoundingClientRect();
-
         visualHeader.style.left = `${Math.round(rect.left)}px`;
         visualHeader.style.top = `${Math.round(rect.top)}px`;
         visualHeader.style.width = `${Math.round(rect.width)}px`;
 
-        markClientMessages();
+        const emptyTop = rect.top + HEADER_HEIGHT + EMPTY_MARGIN;
+        const emptyHeight = Math.max(180, rect.height - HEADER_HEIGHT - (EMPTY_MARGIN * 2) - COMPOSER_RESERVE);
+
+        emptyState.style.left = `${Math.round(rect.left + EMPTY_MARGIN)}px`;
+        emptyState.style.top = `${Math.round(emptyTop)}px`;
+        emptyState.style.width = `${Math.round(rect.width - (EMPTY_MARGIN * 2))}px`;
+        emptyState.style.height = `${Math.round(emptyHeight)}px`;
+        emptyState.classList.toggle('is-visible', !hasMessages(getRoot()));
       };
 
-      const reopenLocallyClosedChat = () => {
-        const root = getRoot();
+      const findNativeClose = () => {
+        const messenger = getMessenger();
+        if (!messenger) return null;
 
-        if (!root?.classList.contains('carprice-chat-manually-hidden')) {
-          return false;
-        }
+        const controls = messenger.querySelectorAll('button, [role="button"], [title], [aria-label]');
+        return [...controls].find((control) => {
+          const description = [
+            control.getAttribute('title'),
+            control.getAttribute('aria-label'),
+            typeof control.className === 'string' ? control.className : '',
+            control.textContent
+          ].filter(Boolean).join(' ').toLowerCase();
 
-        root.classList.remove('carprice-chat-manually-hidden');
-        window.requestAnimationFrame(positionHeader);
-        return true;
+          return /сверн|закры|close|minimi|collapse|chevron-down/.test(description);
+        }) || null;
       };
 
       const openChat = () => {
-        /*
-         * После нашего сворачивания не запускаем BPMSoft заново:
-         * просто возвращаем уже работающий чат со всей историей и кнопками.
-         */
-        if (reopenLocallyClosedChat()) return;
-
         const clickWhenReady = () => {
           const startButton = getStartButton();
           if (!startButton) return false;
-
           startButton.click();
-          window.setTimeout(positionHeader, 120);
+          window.setTimeout(positionOverlays, 120);
           return true;
         };
 
@@ -1354,7 +1258,6 @@
 
         launcher.setAttribute('aria-busy', 'true');
         const started = Date.now();
-
         window.clearInterval(openRequestTimer);
         openRequestTimer = window.setInterval(() => {
           if (clickWhenReady() || Date.now() - started > 12000) {
@@ -1365,35 +1268,27 @@
       };
 
       const closeChat = () => {
-        /*
-         * Не ищем неизвестную внутреннюю кнопку BPMSoft и не нажимаем
-         * startbutton повторно. Просто визуально сворачиваем уже работающий
-         * messenger. Соединение, сообщения и быстрые ответы сохраняются.
-         */
-        const root = getRoot();
-        if (!root) return;
-
-        root.classList.add('carprice-chat-manually-hidden');
-        visualHeader.classList.remove('is-visible');
-        launcher.classList.remove('is-hidden');
+        const nativeClose = findNativeClose();
+        if (nativeClose) {
+          nativeClose.click();
+        } else {
+          getStartButton()?.click();
+        }
+        window.setTimeout(positionOverlays, 120);
       };
 
       launcher.addEventListener('click', openChat);
       closeButton.addEventListener('click', closeChat);
+      window.addEventListener('resize', positionOverlays, { passive: true });
+      window.addEventListener('scroll', positionOverlays, { passive: true });
 
-      window.addEventListener('resize', positionHeader, { passive: true });
+      const observer = new MutationObserver(positionOverlays);
+      observer.observe(document.body, { childList: true, subtree: true });
 
-      const observer = new MutationObserver(positionHeader);
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['class', 'style']
-      });
-
-      window.setInterval(positionHeader, 500);
-      positionHeader();
+      window.setInterval(positionOverlays, 350);
+      positionOverlays();
     })();
+  
   </script>
 </body>
 </html>
